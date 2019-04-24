@@ -1,1 +1,2 @@
-# Repository for student project "Real-time measurement of cognitive load during VR-application".
+# "Real-time measurement of cognitive load during VR-application".
+## Student project of the University of Bielefeld.
