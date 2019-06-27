@@ -86,12 +86,24 @@ class Lsl_receiver:
         self.collection_thread.join() #clean up threads
 
 
+    def cl_index(self, mat, band_mat):
+        mat = np.array(mat)
 
-    def plot_theta_alpha(self, mat):
+        theta = mat[:, 0]  # mat -> second values rows, third values columns
+        alpha = mat[:, 1]  # currently over all channels
+
+        cli_every_channel = theta / alpha
+
+
+        return cli_every_channel
+
+
+    def plot_cli(self, mat):
         mat = np.array(mat)
         #print(band_mat.shape)
         #print(band_mat[:, 0, :])
-        plt.plot(mat[:, 0, 0] / mat[:, 0, 1])
+        bla = mat[:, 0, 0] / mat[:, 0, 1]
+        plt.plot(bla)
         plt.show()
 
 
@@ -109,14 +121,20 @@ if __name__ == '__main__':
         data, _ = lsl.cut_segment(local_clock(), 1)
         band = bandpower(data_segment=data)
         band_mat = []
+        cli_list = []
         try:
             while True:
-                time.sleep(2) #time.sleep, otherwise CPU will be 100% used
-                data, times = lsl.cut_segment(local_clock()-1.5, 1) #current time minus 1.5 seconds for an interval of 1 (Second argument)
+                time.sleep(1) #time.sleep, otherwise CPU will be 100% used
+                # data contains for 1 second 125 arrays with each 8 values (for every channel)
+                data, times = lsl.cut_segment(local_clock()-5.5, 1) #current time minus 1.5 seconds for an interval of 1 (Second argument)
                 segment_powers = band.calculate_bandpower(data, times, 125)
-                band_mat.append(segment_powers)
+                band_mat.append(segment_powers) # band_mat == band powers
                 # print("segment_powers", segment_powers)
-                lsl.plot_theta_alpha(band_mat)
+                cli = lsl.cl_index(segment_powers, band_mat)
+                cli_list.append(cli)
+
+                lsl.plot_cli(band_mat)
+
         except KeyboardInterrupt:
             pass
 
@@ -129,7 +147,7 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt:
         lsl.stop_recording()
-        lsl.plot_theta_alpha()
+
         print("Done.")
 
 
