@@ -11,7 +11,7 @@ from pylsl import StreamInfo, StreamOutlet, local_clock
 # last value would be the serial number of the device or some other more or
 # less locally unique identifier for the stream as far as available (you
 # could also omit it but interrupted connections wouldn't auto-recover).
-info = StreamInfo('openbci_eeg', 'EEG', 8, 125, 'float32', 'myuid2424')
+info = StreamInfo('obci_eeg1', 'EEG', 8, 125, 'float32', 'myuid2424')
 
 # append some meta-data
 info.desc().append_child_value("manufacturer", "BioSemi")

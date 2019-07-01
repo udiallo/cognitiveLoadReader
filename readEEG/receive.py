@@ -27,7 +27,7 @@ class Lsl_receiver:
         streams = resolve_stream() # get all current streams
         for stream in streams:
             print(stream)
-            if stream.name() == "openbci_eeg": #looking for stream with name ...
+            if stream.name() == "obci_eeg1": #looking for stream with name ...
                 self.stream = stream
                 print("Found stream!!!!!!!")
 
@@ -65,7 +65,10 @@ class Lsl_receiver:
             index = int(diffs.argmin()) #index of timestamp with smallest difference
             segment_size = int(self.inlet.info().nominal_srate() * segment_size_in_sec)
 
-            print(index, segment_size, len(self.data_buffer))
+
+            #print("index of timestamp with smallest difference: ", index)
+            #print("current segment_size: ", segment_size)
+            #print("length of data_buffer: ", len(self.data_buffer))
             #sanity checks: segment_size not bigger than buffer_size, index+segment_length not bigger than buffer
 
             data_segment = list(islice(self.data_buffer, index, index + segment_size))
@@ -86,25 +89,39 @@ class Lsl_receiver:
         self.collection_thread.join() #clean up threads
 
 
-    def cl_index(self, mat, band_mat):
-        mat = np.array(mat)
+    def cl_index(self, segment_powers, alpha_channel, theta_channel):
+        # alpha_channel, theta_channel -> choosing channel of interest for each band
 
-        theta = mat[:, 0]  # mat -> second values rows, third values columns
-        alpha = mat[:, 1]  # currently over all channels
+        segment_powers = np.array(segment_powers)
+        alpha = segment_powers[alpha_channel, 0]  # mat -> second values rows, third values columns
+        theta = segment_powers[theta_channel, 1]  # currently over all channels
 
-        cli_every_channel = theta / alpha
-
-
-        return cli_every_channel
+        cli = alpha / theta # calculate cognitive load
 
 
-    def plot_cli(self, mat):
-        mat = np.array(mat)
-        #print(band_mat.shape)
-        #print(band_mat[:, 0, :])
-        bla = mat[:, 0, 0] / mat[:, 0, 1]
-        plt.plot(bla)
+        return cli
+
+
+    def plot_cli(self, cli_list):
+        plt.plot(cli_list)
         plt.show()
+
+    def send_hint(self, cli_list):
+        # send hint, if mean of last three cli values is under threshold
+
+        threshold = 0.6
+        num_of_last_values = 10
+
+        cli_last_values = cli_list[-num_of_last_values:-1] # == cli_list[len(cli_list)-4 : len(cli_list)-1]
+        if (len(cli_last_values) >= 2):
+            cli_mean = np.mean(cli_last_values)
+            print("mean of last cli values: ", cli_mean)
+
+            if (cli_mean < threshold):
+                print("Show hint!!!")
+                #send true to server
+
+
 
 
 
@@ -122,18 +139,24 @@ if __name__ == '__main__':
         band = bandpower(data_segment=data)
         band_mat = []
         cli_list = []
+        alpha_channel = [0, 1] # choose channel of interest for alpha_band
+        theta_channel = [0, 1] # choose channel of interest for theta_band
         try:
             while True:
                 time.sleep(1) #time.sleep, otherwise CPU will be 100% used
                 # data contains for 1 second 125 arrays with each 8 values (for every channel)
-                data, times = lsl.cut_segment(local_clock()-5.5, 1) #current time minus 1.5 seconds for an interval of 1 (Second argument)
+                data, times = lsl.cut_segment(local_clock()-5.5, 5) #current time minus x seconds for an interval of y (Second argument)
                 segment_powers = band.calculate_bandpower(data, times, 125)
+
                 band_mat.append(segment_powers) # band_mat == band powers
-                # print("segment_powers", segment_powers)
-                cli = lsl.cl_index(segment_powers, band_mat)
+
+                cli = lsl.cl_index(segment_powers, alpha_channel, theta_channel)
+
                 cli_list.append(cli)
 
-                lsl.plot_cli(band_mat)
+                lsl.send_hint(cli_list)
+
+                lsl.plot_cli(cli_list) # plot list of cli for channel chan
 
         except KeyboardInterrupt:
             pass

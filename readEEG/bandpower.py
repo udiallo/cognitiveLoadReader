@@ -70,7 +70,7 @@ class bandpower:
             rel_band = np.zeros(self.n_bands)
             for i in range(self.n_bands):
                 rel_band[i] = (np.sum(power[mask_list[i]]) / np.sum(power[freq_all_idx])) # rel_band is a list of how much of every band is in channel c (if all bands taken, there are 5 values)
-            print("rel_band", rel_band)
+            #print("alpha, theta", rel_band)
             band_mat.append(rel_band) # list of rel_bands
 
         return band_mat
