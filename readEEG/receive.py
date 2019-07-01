@@ -10,6 +10,8 @@ from scipy.signal import periodogram
 from bandpower import bandpower
 import matplotlib.pyplot as plt
 
+import json, requests
+
 class Lsl_receiver:
 
     def __init__(self):
@@ -119,7 +121,8 @@ class Lsl_receiver:
 
             if (cli_mean < threshold):
                 print("Show hint!!!")
-                #send true to server
+
+                requests.post("http://localhost:25080", json.dumps({'hint': 1}))
 
 
 
