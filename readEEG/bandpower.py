@@ -36,14 +36,14 @@ class bandpower:
         # self.freq_beta2_idx = (f >= 20) & (f < 29)
 
         #for only theta and alpha:
-        self.freq_all_idx = ((f >= 4) & (f < 13))
+        #self.freq_all_idx = ((f >= 4) & (f < 13))
 
-        self.freq_theta_idx = (f >= 4) & (f < 8)
-        self.freq_alpha_idx = (f >= 8) & (f < 13)
+        #self.freq_theta_idx = (f >= 4) & (f < 8)
+        #self.freq_alpha_idx = (f >= 8) & (f < 13)
 
         # create list of masks
-        self.mask_list = np.array(
-            [self.freq_alpha_idx, self.freq_theta_idx])
+        #self.mask_list = np.array(
+         #   [self.freq_alpha_idx, self.freq_theta_idx])
 
         # lists for current cognitive load for every channel
 

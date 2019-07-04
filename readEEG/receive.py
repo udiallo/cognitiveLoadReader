@@ -95,10 +95,10 @@ class Lsl_receiver:
         # alpha_channel, theta_channel -> choosing channel of interest for each band
 
         segment_powers = np.array(segment_powers)
-        alpha = segment_powers[alpha_channel, 0]  # mat -> second values rows, third values columns
-        theta = segment_powers[theta_channel, 1]  # currently over all channels
+        theta = segment_powers[theta_channel, 0]  # mat -> second values rows, third values columns
+        alpha = segment_powers[alpha_channel, 1]  # currently over all channels
 
-        cli = alpha / theta # calculate cognitive load
+        cli = theta / alpha # calculate cognitive load
 
 
         return cli
@@ -148,7 +148,7 @@ if __name__ == '__main__':
             while True:
                 time.sleep(1) #time.sleep, otherwise CPU will be 100% used
                 # data contains for 1 second 125 arrays with each 8 values (for every channel)
-                data, times = lsl.cut_segment(local_clock()-5.5, 5) #current time minus x seconds for an interval of y (Second argument)
+                data, times = lsl.cut_segment(local_clock()-5.5, 1) #current time minus x seconds for an interval of y (Second argument)
                 segment_powers = band.calculate_bandpower(data, times, 125)
 
                 band_mat.append(segment_powers) # band_mat == band powers
