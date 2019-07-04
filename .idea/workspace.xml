@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="0c36a3d1-881d-45d3-845e-20919c6971ea" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/readEEG/receive.py" beforeDir="false" afterPath="$PROJECT_DIR$/readEEG/receive.py" afterDir="false" />
-    </list>
+    <list default="true" id="0c36a3d1-881d-45d3-845e-20919c6971ea" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -105,6 +103,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -121,7 +120,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -242,16 +240,18 @@
       <workItem from="1561812424905" duration="1722000" />
       <workItem from="1562004325408" duration="4597000" />
       <workItem from="1562009017296" duration="78000" />
+      <workItem from="1562074383525" duration="40000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="21384000" />
+    <option name="totallyTimeSpent" value="21424000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="67" y="25" width="1853" height="1055" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.1278362" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.128943" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
