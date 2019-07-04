@@ -111,7 +111,7 @@ class Lsl_receiver:
     def send_hint(self, cli_list):
         # send hint, if mean of last three cli values is under threshold
 
-        threshold = 0.6
+        threshold = 4
         num_of_last_values = 10
 
         cli_last_values = cli_list[-num_of_last_values:-1] # == cli_list[len(cli_list)-4 : len(cli_list)-1]
@@ -119,7 +119,7 @@ class Lsl_receiver:
             cli_mean = np.mean(cli_last_values)
             print("mean of last cli values: ", cli_mean)
 
-            if (cli_mean < threshold):
+            if (cli_mean > threshold):
                 print("Show hint!!!")
 
                 requests.post("http://localhost:25080", json.dumps({'hint': 1}))
@@ -142,16 +142,16 @@ if __name__ == '__main__':
         band = bandpower(data_segment=data)
         band_mat = []
         cli_list = []
-        alpha_channel = [0, 1] # choose channel of interest for alpha_band
-        theta_channel = [0, 1] # choose channel of interest for theta_band
+        alpha_channel = [14] # choose channel of interest for alpha_band
+        theta_channel = [10] # choose channel of interest for theta_band
         try:
             while True:
                 time.sleep(1) #time.sleep, otherwise CPU will be 100% used
                 # data contains for 1 second 125 arrays with each 8 values (for every channel)
-                data, times = lsl.cut_segment(local_clock()-5.5, 1) #current time minus x seconds for an interval of y (Second argument)
+                data, times = lsl.cut_segment(local_clock()-5.5, 5) #current time minus x seconds for an interval of y (Second argument)
                 segment_powers = band.calculate_bandpower(data, times, 125)
 
-                band_mat.append(segment_powers) # band_mat == band powers
+                #band_mat.append(segment_powers) # band_mat == band powers
 
                 cli = lsl.cl_index(segment_powers, alpha_channel, theta_channel)
 
@@ -159,7 +159,7 @@ if __name__ == '__main__':
 
                 lsl.send_hint(cli_list)
 
-                lsl.plot_cli(cli_list) # plot list of cli for channel chan
+                #lsl.plot_cli(cli_list) # plot list of cli for channel chan
 
         except KeyboardInterrupt:
             pass
