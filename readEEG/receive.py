@@ -124,7 +124,7 @@ class Lsl_receiver:
             cli_mean = np.mean(cli_last_values)
             print("mean of last cli values: ", cli_mean)
 
-            if (cli_mean > lsl.threshold):
+            if (cli_mean > threshold):
                 print("Show hint!!!")
 
                 requests.post("http://localhost:25080", json.dumps({'hint': 1}))
@@ -152,14 +152,14 @@ class Lsl_receiver:
         time.sleep(5)
 
         requests.post("http://localhost:25080",
-                      json.dumps({'numbers': [7, 8, 1, 3, 6, 95, 8, 4, 22, 65]}))
+                      json.dumps({'numbers': ["85+3=?", "-6", "-4", "-20", "-25", "*2", "-18", "22+22=?", "+13" ]}))
 
 
     def end_task2(self):
 
         requests.post("http://localhost:25080",
-                      json.dumps({'brainTeaser': "Please spell out loud the sequence of numbers, as far you can remember it"}))
-        time.sleep(4)
+                      json.dumps({'brainTeaser': "Thank you"}))
+        #time.sleep(4)
 
 
 
@@ -178,7 +178,7 @@ if __name__ == '__main__':
     #calculate threshold
 
     requests.post("http://localhost:25080",
-                  json.dumps({'brainTeaser': "For the next seconds, please try to relax and just look at the '+'."}))
+                  json.dumps({'brainTeaser': "Close the eyes until Ule says 'open your eyes'."}))
     time.sleep(5)
     requests.post("http://localhost:25080",
                   json.dumps({'showFixationPoint': True}))
@@ -203,10 +203,10 @@ if __name__ == '__main__':
                 #if counter == 60:
                 #    lsl.start_task2()
 
-                if counter == 70:
+                if counter == 60:
                     lsl.end_task2()
 
-                if counter == 80:
+                if counter == 70:
                     lsl.calculate_cl_max(cli_list)
                     lsl.calculate_threshold()
                     lsl.threshold_calculated = True
@@ -238,11 +238,21 @@ if __name__ == '__main__':
 # skills lab is starting
 
     
+
+
     requests.post("http://localhost:25080",
-              json.dumps({'finishedPreparation': True}))
-              
-        
-    time.sleep(5)
+                  json.dumps({'brainTeaser': "You can start with the skillslab task now!"}))
+
+    print("cl_threshold: " + str(lsl.threshold))
+    print("cl_min: " + str(lsl.cl_min))
+    print("cl_max: " + str(lsl.cl_max))
+
+    time.sleep(3)
+
+    requests.post("http://localhost:25080",
+                  json.dumps({'finishedPreparation': True}))
+
+
 
     try:
         time.sleep(1)
@@ -266,9 +276,7 @@ if __name__ == '__main__':
 
                 lsl.send_hint(cli_list)
 
-                print("cl_threshold: " + str(lsl.threshold))
-                print("cl_min: " + str(lsl.cl_min))
-                print("cl_max: " + str(lsl.cl_max))
+
 
                 #lsl.plot_cli(cli_list) # plot list of cli for channel chan
 
