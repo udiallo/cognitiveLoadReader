@@ -124,7 +124,7 @@ class Lsl_receiver:
             cli_mean = np.mean(cli_last_values)
             print("mean of last cli values: ", cli_mean)
 
-            if (cli_mean > threshold):
+            if (cli_mean > lsl.threshold):
                 print("Show hint!!!")
 
                 requests.post("http://localhost:25080", json.dumps({'hint': 1}))
@@ -137,15 +137,14 @@ class Lsl_receiver:
         self.cl_min = min_value
 
     def calculate_cl_max(self, cli_list):
-        num_last_values = 20
+        num_last_values = 40
         cli_list = cli_list[-num_last_values:-1]
         cli_list = np.asarray(cli_list)
-        max_values = cli_list.argsort()[-7:][::-1]  # 7 biggest values take into account
-        max_value = np.mean(max_values)
+        max_value = max(cli_list)
         self.cl_max = max_value
 
     def calculate_threshold(self):
-        self.threshold = 0.8 * self.cl_max
+        self.threshold = 0.9 * self.cl_max
 
     def start_task2(self):
         requests.post("http://localhost:25080",
@@ -153,7 +152,7 @@ class Lsl_receiver:
         time.sleep(5)
 
         requests.post("http://localhost:25080",
-                      json.dumps({'numbers': [9, 3, 7, 6, 1, 4, 8, 9, 1, 2, 347]}))
+                      json.dumps({'numbers': [7, 8, 1, 3, 6, 95, 8, 4, 22, 65]}))
 
 
     def end_task2(self):
@@ -170,8 +169,11 @@ if __name__ == '__main__':
     lsl.auto_resolve()
     lsl.start_recording()
 
-    alpha_channel = [14]  # choose channel of interest for alpha_band
-    theta_channel = [10]  # choose channel of interest for theta_band
+    requests.post("http://localhost:25080",
+          json.dumps({'reset': True}))
+
+    alpha_channel = [15]  # choose channel of interest for alpha_band
+    theta_channel = [11]  # choose channel of interest for theta_band
 
     #calculate threshold
 
@@ -193,7 +195,7 @@ if __name__ == '__main__':
             while not lsl.threshold_calculated:
                 time.sleep(1)  # time.sleep, otherwise CPU will be 100% used
 
-                if counter == 40:
+                if counter == 34:
                     lsl.calculate_cl_min(cli_list)
                     cli_list = []
                     lsl.start_task2()
@@ -204,13 +206,13 @@ if __name__ == '__main__':
                 if counter == 70:
                     lsl.end_task2()
 
-                if counter == 85:
+                if counter == 80:
                     lsl.calculate_cl_max(cli_list)
+                    lsl.calculate_threshold()
                     lsl.threshold_calculated = True
 
                 # data contains for 1 second 125 arrays with each 8 values (for every channel)
-                data, times = lsl.cut_segment(local_clock() - 5.5,
-                                              1)  # current time minus x seconds for an interval of y (Second argument)
+                data, times = lsl.cut_segment(local_clock() - 5.5, 5)  # current time minus x seconds for an interval of y (Second argument)
                 segment_powers = band.calculate_bandpower(data, times, 125)
 
                 #band_mat.append(segment_powers)  # band_mat == band powers
@@ -221,6 +223,7 @@ if __name__ == '__main__':
 
                 lsl.plot_cli(cli_list)  # plot list of cli for channel chan
                 counter+=1
+                print(counter)
 
 
         except KeyboardInterrupt:
@@ -234,7 +237,11 @@ if __name__ == '__main__':
 
 # skills lab is starting
 
-    # ToDo: say unity to start with actual skills lab tasks
+    
+    requests.post("http://localhost:25080",
+              json.dumps({'finishedPreparation': True}))
+              
+        
     time.sleep(5)
 
     try:
@@ -259,9 +266,9 @@ if __name__ == '__main__':
 
                 lsl.send_hint(cli_list)
 
-                print("cl_threshold: " + lsl.threshold)
-                print("cl_min: " + lsl.cl_min)
-                print("cl_max: " + lsl.cl_max)
+                print("cl_threshold: " + str(lsl.threshold))
+                print("cl_min: " + str(lsl.cl_min))
+                print("cl_max: " + str(lsl.cl_max))
 
                 #lsl.plot_cli(cli_list) # plot list of cli for channel chan
 
