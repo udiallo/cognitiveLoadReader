@@ -103,10 +103,13 @@ class Lsl_receiver:
         theta = segment_powers[theta_channel, 0]  # mat -> second values rows, third values columns
         alpha = segment_powers[alpha_channel, 1]  # currently over all channels
 
-        cli = theta / alpha # calculate cognitive load
+        cli_all_channel = theta / alpha # calculate cognitive load
 
-
-        return cli
+        if len(cli_all_channel) > 1:
+            cli_mean_of_channel = np.mean(cli_all_channel)
+        else:
+            cli_mean_of_channel = cli_all_channel
+        return cli_mean_of_channel, cli_all_channel
 
 
     def plot_cli(self, cli_list):
@@ -118,13 +121,15 @@ class Lsl_receiver:
 
         threshold = 4
         num_of_last_values = 10
+        if (do_pretest):
+            threshold = lsl.threshold
 
         cli_last_values = cli_list[-num_of_last_values:-1] # == cli_list[len(cli_list)-4 : len(cli_list)-1]
         if (len(cli_last_values) >= 2):
             cli_mean = np.mean(cli_last_values)
             print("mean of last cli values: ", cli_mean)
 
-            if (cli_mean > threshold):
+            if (cli_mean > threshold): # choose threshold as hard coded, lsl.threshold as calculated from pretest
                 print("Show hint!!!")
 
                 requests.post("http://localhost:25080", json.dumps({'hint': 1}))
@@ -148,11 +153,11 @@ class Lsl_receiver:
 
     def start_task2(self):
         requests.post("http://localhost:25080",
-                      json.dumps({'brainTeaser': "Please remember the following sequence of numbers:"}))
+                      json.dumps({'brainTeaser': "Please remember the sequence of numbers and speak it out loud, when the numbers disappear"}))
         time.sleep(5)
 
         requests.post("http://localhost:25080",
-                      json.dumps({'numbers': ["85+3=?", "-6", "-4", "-20", "-25", "*2", "-18", "22+22=?", "+13" ]}))
+                      json.dumps({'numbers': [["2","392"], ["2", "5346"],["2,5", "28975"], ["3", "640901"], ["3,5", "8475132"], ["4","10738295"], ["4","923717562"], ["5", "28461053042"]]}))
 
 
     def end_task2(self):
@@ -172,73 +177,73 @@ if __name__ == '__main__':
     requests.post("http://localhost:25080",
           json.dumps({'reset': True}))
 
-    alpha_channel = [15]  # choose channel of interest for alpha_band
-    theta_channel = [11]  # choose channel of interest for theta_band
+    alpha_channel = [0, 2]  # choose channel of interest for alpha_band
+    theta_channel = [1, 3]  # choose channel of interest for theta_band
+
+    do_pretest = True  #
 
     #calculate threshold
 
     requests.post("http://localhost:25080",
-                  json.dumps({'brainTeaser': "Close the eyes until Ule says 'open your eyes'."}))
-    time.sleep(5)
+                  json.dumps({'brainTeaser': "Please look at the fixation-cross for the next seconds"}))
+    time.sleep(3)
     requests.post("http://localhost:25080",
                   json.dumps({'showFixationPoint': True}))
 
+    if do_pretest:
 
-    try:  # calculate threshold
-        time.sleep(1)
-        data, _ = lsl.cut_segment(local_clock(), 1)
-        band = bandpower(data_segment=data)
-        #band_mat = []
-        cli_list = []
-        counter = 0
         try:
-            while not lsl.threshold_calculated:
-                time.sleep(1)  # time.sleep, otherwise CPU will be 100% used
+            time.sleep(1)
+            data, _ = lsl.cut_segment(local_clock(), 1)
+            band = bandpower(data_segment=data)
+            cli_list = []
+            counter = 0
+            time_stop_task1 = 34
+            time_stop_task2 = 60
+            time_after_task2 = 70
+            try:
+                while not lsl.threshold_calculated:
+                    time.sleep(1)  # time.sleep, otherwise CPU will be 100% used
 
-                if counter == 34:
-                    lsl.calculate_cl_min(cli_list)
-                    cli_list = []
-                    lsl.start_task2()
+                    if counter == time_stop_task1:
+                        lsl.calculate_cl_min(cli_list)
+                        cli_list = []
+                        lsl.start_task2()
 
-                #if counter == 60:
-                #    lsl.start_task2()
+                    if counter == time_stop_task2:
+                        lsl.end_task2()
 
-                if counter == 60:
-                    lsl.end_task2()
+                    if counter == time_after_task2:
+                        lsl.calculate_cl_max(cli_list)
+                        lsl.calculate_threshold()
+                        lsl.threshold_calculated = True
 
-                if counter == 70:
-                    lsl.calculate_cl_max(cli_list)
-                    lsl.calculate_threshold()
-                    lsl.threshold_calculated = True
+                    # data contains for 1 second 125 arrays with each 8 values (for every channel)
+                    data, times = lsl.cut_segment(local_clock() - 5.5, 5)  # current time minus x seconds for an interval of y (Second argument)
+                    segment_powers = band.calculate_bandpower(data, times, 125)
 
-                # data contains for 1 second 125 arrays with each 8 values (for every channel)
-                data, times = lsl.cut_segment(local_clock() - 5.5, 5)  # current time minus x seconds for an interval of y (Second argument)
-                segment_powers = band.calculate_bandpower(data, times, 125)
+                    #band_mat.append(segment_powers)  # band_mat == band powers
 
-                #band_mat.append(segment_powers)  # band_mat == band powers
+                    cli, _ = lsl.cl_index(segment_powers, alpha_channel, theta_channel)
 
-                cli = lsl.cl_index(segment_powers, alpha_channel, theta_channel)
+                    cli_list.append(cli)
 
-                cli_list.append(cli)
+                    lsl.plot_cli(cli_list)  # plot list of cli for channel chan
+                    counter+=1
+                    print(counter)
 
-                lsl.plot_cli(cli_list)  # plot list of cli for channel chan
-                counter+=1
-                print(counter)
+
+            except KeyboardInterrupt:
+                pass
 
 
         except KeyboardInterrupt:
-            pass
+            lsl.stop_recording()
 
+            print("Done.")
 
-    except KeyboardInterrupt:
-        lsl.stop_recording()
-
-        print("Done.")
 
 # skills lab is starting
-
-    
-
 
     requests.post("http://localhost:25080",
                   json.dumps({'brainTeaser': "You can start with the skillslab task now!"}))
@@ -270,11 +275,13 @@ if __name__ == '__main__':
 
                 #band_mat.append(segment_powers) # band_mat == band powers
 
-                cli = lsl.cl_index(segment_powers, alpha_channel, theta_channel)
+                cli, _ = lsl.cl_index(segment_powers, alpha_channel, theta_channel)  # could also give cli_all_channel, which is an array of cli for every channel
 
                 cli_list.append(cli)
 
                 lsl.send_hint(cli_list)
+
+                lsl.plot_cli(cli_list)
 
 
 
