@@ -44,8 +44,7 @@ class S(BaseHTTPRequestHandler):
     
     _canvas_text = ""
     
-    # format: [(time_between_symbols, time_after_sequence, [symbol1, symbol2, symbol3, ...])]
-    _sequences = []
+    _sequence = []
     
     _finished_preparation = False
 
@@ -76,12 +75,12 @@ class S(BaseHTTPRequestHandler):
         type(self)._canvas_text = val
         
     @property
-    def sequences(self):
-        return type(self)._sequences
+    def sequence(self):
+        return type(self)._sequence
         
-    @sequences.setter
-    def sequences(self, val):
-        type(self)._sequences = val
+    @sequence.setter
+    def sequence(self, val):
+        type(self)._sequence = val
 
     @property
     def finished_preparation(self):
@@ -121,20 +120,18 @@ class S(BaseHTTPRequestHandler):
         
         self._set_headers()
         
-        # Next sequence. If none left, sequence is empty.
-        sequence = []
-        if len(self.sequences) > 0:
-            sequence = self.sequences.pop(0)
-        
-        response_dict = { \
+        json_response = json.dumps({ \
                 'hint': self.hint, \
                 'showFixationPoint': self.show_fixation_point, \
                 'canvasText': self.canvas_text, \
-                'sequence': sequence, \
+                'sequence': self.sequence, \
                 'finishedPreparation': self.finished_preparation \
-                }
-        
-        json_response = json.dumps(response_dict)
+                })
+                
+        # send sequence only once
+        if len(self.sequence) > 0:
+            self.sequence = []
+            self.show_fixation_point = True
 
         self.wfile.write(json_response.encode())
         print(PrintColors.ENDC + "[{}] GET , returning: {}".format(time, json_response) + PrintColors.ENDC, flush=True)
@@ -189,9 +186,9 @@ class S(BaseHTTPRequestHandler):
             self.canvas_text = data['canvasText']
             self.show_fixation_point = False
             
-        if 'sequences' in data:
-            self.sequences = data['sequences']
-            self.show_fixation_point = True
+        if 'sequence' in data:
+            self.sequence = data['sequence']
+            self.show_fixation_point = False
             self.canvas_text = ""
         
         if 'finishedPreparation' in data:

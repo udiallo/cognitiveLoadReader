@@ -153,17 +153,17 @@ class Lsl_receiver:
 
     def start_task2(self):
         requests.post("http://localhost:25080",
-                      json.dumps({'brainTeaser': "Please remember the sequence of numbers and speak it out loud, when the numbers disappear"}))
+                      json.dumps({'canvasText': "Please remember the sequence of sequence and speak it out loud, when the sequence disappear"}))
         time.sleep(5)
 
         requests.post("http://localhost:25080",
-                      json.dumps({'numbers': [["2","392"], ["2", "5346"],["2,5", "28975"], ["3", "640901"], ["3,5", "8475132"], ["4","10738295"], ["4","923717562"], ["5", "28461053042"]]}))
+                      json.dumps({'sequence': ["392", "5346",  "28975", "640901", "8475132", "10738295", "923717562", "28461053042"]}))
 
 
     def end_task2(self):
 
         requests.post("http://localhost:25080",
-                      json.dumps({'brainTeaser': "Thank you"}))
+                      json.dumps({'canvasText': "Thank you"}))
         #time.sleep(4)
 
 
@@ -185,7 +185,7 @@ if __name__ == '__main__':
     #calculate threshold
 
     requests.post("http://localhost:25080",
-                  json.dumps({'brainTeaser': "Please look at the fixation-cross for the next seconds"}))
+                  json.dumps({'canvasText': "Please look at the fixation-cross for the next seconds"}))
     time.sleep(3)
     requests.post("http://localhost:25080",
                   json.dumps({'showFixationPoint': True}))
@@ -246,7 +246,7 @@ if __name__ == '__main__':
 # skills lab is starting
 
     requests.post("http://localhost:25080",
-                  json.dumps({'brainTeaser': "You can start with the skillslab task now!"}))
+                  json.dumps({'canvasText': "You can start with the skillslab task now!"}))
 
     print("cl_threshold: " + str(lsl.threshold))
     print("cl_min: " + str(lsl.cl_min))
