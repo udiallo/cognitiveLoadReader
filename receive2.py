@@ -7,7 +7,7 @@ import numpy as np
 from pylsl import resolve_stream, StreamInlet, local_clock
 from scipy.signal import periodogram
 
-from bandpower import bandpower
+from bandpower2 import bandpower
 import matplotlib.pyplot as plt
 
 import json, requests
@@ -232,8 +232,8 @@ if __name__ == '__main__':
     requests.post("http://localhost:25080",
           json.dumps({'reset': True}))
 
-    alpha_channel = [0]#, 2]  # choose channel of interest for alpha_band
-    theta_channel = [1]#, 3]  # choose channel of interest for theta_band
+    alpha_channel = [11]#, 2]  # choose channel of interest for alpha_band
+    theta_channel = [15]#, 3]  # choose channel of interest for theta_band
 
     do_pretest = True  #
 
@@ -318,7 +318,7 @@ if __name__ == '__main__':
                     cli_list.append(cli)
 
 
-                    lsl.plot_cli(cli_list)  # plot list of cli for channel chan
+                    #lsl.plot_cli(cli_list)  # plot list of cli for channel chan
 
                     ####################################################################################################
                     # calculate absolute power for test phase
@@ -394,7 +394,7 @@ if __name__ == '__main__':
 
                 lsl.send_hint(cli_list)
 
-                lsl.plot_cli(cli_list)
+                #lsl.plot_cli(cli_list)
 
 
 

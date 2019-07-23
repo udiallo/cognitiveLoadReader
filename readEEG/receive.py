@@ -285,7 +285,7 @@ if __name__ == '__main__':
 
 
 
-                #lsl.plot_cli(cli_list) # plot list of cli for channel chan
+                lsl.plot_cli(cli_list) # plot list of cli for channel chan
 
         except KeyboardInterrupt:
             pass
