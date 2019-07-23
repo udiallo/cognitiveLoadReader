@@ -177,8 +177,8 @@ if __name__ == '__main__':
     requests.post("http://localhost:25080",
           json.dumps({'reset': True}))
 
-    alpha_channel = [0, 2]  # choose channel of interest for alpha_band
-    theta_channel = [1, 3]  # choose channel of interest for theta_band
+    alpha_channel = [11]#, 2]  # choose channel of interest for alpha_band
+    theta_channel = [15]#, 3]  # choose channel of interest for theta_band
 
     do_pretest = True  #
 
@@ -199,8 +199,8 @@ if __name__ == '__main__':
             cli_list = []
             counter = 0
             time_stop_task1 = 34
-            time_stop_task2 = 60
-            time_after_task2 = 70
+            time_stop_task2 = 110
+            time_after_task2 = 120
             try:
                 while not lsl.threshold_calculated:
                     time.sleep(1)  # time.sleep, otherwise CPU will be 100% used
@@ -281,7 +281,7 @@ if __name__ == '__main__':
 
                 lsl.send_hint(cli_list)
 
-                lsl.plot_cli(cli_list)
+                #lsl.plot_cli(cli_list)
 
 
 
