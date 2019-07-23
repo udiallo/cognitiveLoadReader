@@ -42,10 +42,10 @@ class S(BaseHTTPRequestHandler):
     
     _show_fixation_point = True
     
-    _brain_teaser = ""
+    _canvas_text = ""
     
-    _numbers = []
-    #_i_numbers = 0
+    # format: [(time_between_symbols, time_after_sequence, [symbol1, symbol2, symbol3, ...])]
+    _sequences = []
     
     _finished_preparation = False
 
@@ -68,31 +68,21 @@ class S(BaseHTTPRequestHandler):
         type(self)._show_fixation_point = val
         
     @property
-    def brain_teaser(self):
-        return type(self)._brain_teaser
+    def canvas_text(self):
+        return type(self)._canvas_text
         
-    @brain_teaser.setter
-    def brain_teaser(self, val):
-        type(self)._brain_teaser = val
+    @canvas_text.setter
+    def canvas_text(self, val):
+        type(self)._canvas_text = val
         
     @property
-    def numbers(self):
-        return type(self)._numbers
+    def sequences(self):
+        return type(self)._sequences
         
-    @numbers.setter
-    def numbers(self, val):
-        type(self)._numbers = val
-        
-    """
-    @property
-    def i_numbers(self):
-        return type(self)._i_numbers
-        
-    @i_numbers.setter
-    def i_numbers(self, val):
-        type(self)._i_numbers = val
-    """
-        
+    @sequences.setter
+    def sequences(self, val):
+        type(self)._sequences = val
+
     @property
     def finished_preparation(self):
         return type(self)._finished_preparation
@@ -131,28 +121,20 @@ class S(BaseHTTPRequestHandler):
         
         self._set_headers()
         
-        """
-        if not self.finished_preparation and not self.show_fixation_point and len(self.numbers) > 0:
-            if (datetime.now() - self.process_timestamp).seconds >= seconds_between_numbers:
-                if self.i_numbers < len(self.numbers) - 1:
-                    self.process_timestamp = datetime.now()
-                    self.i_numbers += 1
-                    self.brain_teaser = str(self.numbers[self.i_numbers])
-                else:
-                    self.show_fixation_point = True
-                    self.numbers = []
-                    print("here")
-        """
+        # Next sequence. If none left, sequence is empty.
+        sequence = []
+        if len(self.sequences) > 0:
+            sequence = self.sequences.pop(0)
         
-        json_response = json.dumps({ \
-                'hint':                 self.hint, \
-                'showFixationPoint':    self.show_fixation_point, \
-                'brainTeaser':          self.brain_teaser, \
-                'numbers':          self.numbers, \
-                'finishedPreparation' : self.finished_preparation \
-                })
-                
-        numbers = []
+        response_dict = { \
+                'hint': self.hint, \
+                'showFixationPoint': self.show_fixation_point, \
+                'canvasText': self.canvas_text, \
+                'sequence': sequence, \
+                'finishedPreparation': self.finished_preparation \
+                }
+        
+        json_response = json.dumps(response_dict)
 
         self.wfile.write(json_response.encode())
         print(PrintColors.ENDC + "[{}] GET , returning: {}".format(time, json_response) + PrintColors.ENDC, flush=True)
@@ -201,19 +183,16 @@ class S(BaseHTTPRequestHandler):
         if 'showFixationPoint' in data:
             self.show_fixation_point = data['showFixationPoint']
             if self.show_fixation_point:
-                self.brain_teaser = ""
+                self.canvas_text = ""
             
-        if 'brainTeaser' in data:
-            self.brain_teaser = data['brainTeaser']
+        if 'canvasText' in data:
+            self.canvas_text = data['canvasText']
             self.show_fixation_point = False
             
-        if 'numbers' in data:
-            self.numbers = data['numbers']
-            self.show_fixation_point = False
-            self.brain_teaser = ""
-            #self.i_numbers = 0
-            #self.brain_teaser = self.numbers[0]
-            #self.process_timestamp = datetime.now()
+        if 'sequences' in data:
+            self.sequences = data['sequences']
+            self.show_fixation_point = True
+            self.canvas_text = ""
         
         if 'finishedPreparation' in data:
             self.finished_preparation = data['finishedPreparation']
@@ -222,7 +201,7 @@ class S(BaseHTTPRequestHandler):
             if data['reset'] == True:
                 self.hint = 0
                 self.show_fixation_point = True
-                self.brain_teaser = ""
+                self.canvas_text = ""
                 self.finished_preparation = False
                 self.process_timestamp = datetime.now()
                 
