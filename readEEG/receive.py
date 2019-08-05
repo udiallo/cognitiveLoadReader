@@ -117,11 +117,11 @@ class Lsl_receiver:
         plt.show()
 
     def send_hint(self, cli_list):
-        # send hint, if mean of last three cli values is under threshold
+        # send hint, if mean of last cli values is under threshold
 
         threshold = 4
-        num_of_last_values = 10
-        if (do_pretest):
+        num_of_last_values = 10 # num of last cli values to calculate mean
+        if (do_pretest): # if pretest flag is true, threshold is taken from pretest, otherwise is hard coded
             threshold = lsl.threshold
 
         cli_last_values = cli_list[-num_of_last_values:-1] # == cli_list[len(cli_list)-4 : len(cli_list)-1]
@@ -129,29 +129,29 @@ class Lsl_receiver:
             cli_mean = np.mean(cli_last_values)
             print("mean of last cli values: ", cli_mean)
 
-            if (cli_mean > threshold): # choose threshold as hard coded, lsl.threshold as calculated from pretest
+            if (cli_mean > threshold): # check if cli_mean is bigger than threshold
                 print("Show hint!!!")
 
-                requests.post("http://localhost:25080", json.dumps({'hint': 1}))
+                requests.post("http://localhost:25080", json.dumps({'hint': 1})) # sends 1 to server, which means "show hint"
 
-    def calculate_cl_min(self, cli_list):
-        num_last_values = 30
+    def calculate_cl_min(self, cli_list): # calculates the mean value of cognitive load while subject is just looking at fixation cross (baseline)
+        num_last_values = 30 # num of last values which are taken into account
         cli_list = cli_list[-num_last_values:-1]
         cli_list = np.asarray(cli_list)
-        min_value = np.mean(cli_list)
+        min_value = np.mean(cli_list) #
         self.cl_min = min_value
 
-    def calculate_cl_max(self, cli_list):
+    def calculate_cl_max(self, cli_list): # calculate max cognitive load by taking highest value
         num_last_values = 40
         cli_list = cli_list[-num_last_values:-1]
         cli_list = np.asarray(cli_list)
         max_value = max(cli_list)
         self.cl_max = max_value
 
-    def calculate_threshold(self):
+    def calculate_threshold(self): # calculate threshold by taking certain amount of max cognitive load value
         self.threshold = 0.9 * self.cl_max
 
-    def start_task2(self):
+    def start_task2(self): # send text and sequences to server
         requests.post("http://localhost:25080",
                       json.dumps({'canvasText': "Please remember the sequence of sequence and speak it out loud, when the sequence disappear"}))
         time.sleep(5)
@@ -170,6 +170,7 @@ class Lsl_receiver:
 
 
 if __name__ == '__main__':
+    #start receiver
     lsl = Lsl_receiver()
     lsl.auto_resolve()
     lsl.start_recording()
@@ -182,7 +183,7 @@ if __name__ == '__main__':
 
     do_pretest = True  #
 
-    #calculate threshold
+    #calculate threshold by pretest
 
     requests.post("http://localhost:25080",
                   json.dumps({'canvasText': "Please look at the fixation-cross for the next seconds"}))
@@ -190,7 +191,7 @@ if __name__ == '__main__':
     requests.post("http://localhost:25080",
                   json.dumps({'showFixationPoint': True}))
 
-    if do_pretest:
+    if do_pretest: # check flag
 
         try:
             time.sleep(1)
@@ -198,9 +199,9 @@ if __name__ == '__main__':
             band = bandpower(data_segment=data)
             cli_list = []
             counter = 0
-            time_stop_task1 = 34
-            time_stop_task2 = 110
-            time_after_task2 = 120
+            time_stop_task1 = 34 # amount of seconds until task 1 is finished
+            time_stop_task2 = 110 # amount of seconds until task 2 is finished
+            time_after_task2 = 120 # time after task 2 until threshold is calculated
             try:
                 while not lsl.threshold_calculated:
                     time.sleep(1)  # time.sleep, otherwise CPU will be 100% used
@@ -224,11 +225,11 @@ if __name__ == '__main__':
 
                     #band_mat.append(segment_powers)  # band_mat == band powers
 
-                    cli, _ = lsl.cl_index(segment_powers, alpha_channel, theta_channel)
+                    cli, _ = lsl.cl_index(segment_powers, alpha_channel, theta_channel) # get cli (cognitive load index)
 
                     cli_list.append(cli)
 
-                    lsl.plot_cli(cli_list)  # plot list of cli for channel chan
+                    lsl.plot_cli(cli_list)  # plots always new cli value
                     counter+=1
                     print(counter)
 
