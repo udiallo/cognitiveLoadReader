@@ -24,10 +24,12 @@ class Lsl_receiver:
         self.collection_thread = Thread(target=self.grab_data)
         self.lock = Lock() # lock buffer so that only one process is working on it
 
-        self.cl_min = 0
-        self.cl_max = 0
+        self.cl_min = 0 # cognitive load baseline value
+        self.cl_max = 0 # cognitive load max value
         self.threshold = 0
         self.threshold_calculated = False
+
+        self.do_pretest = True  # if true, pretest with sequences of numbers is done before skills lab
 
 
     def auto_resolve(self):
@@ -96,8 +98,7 @@ class Lsl_receiver:
         self.collection_thread.join() #clean up threads
 
 
-    def cl_index(self, segment_powers, alpha_channel, theta_channel):
-        # alpha_channel, theta_channel -> choosing channel of interest for each band
+    def cl_index(self, segment_powers, alpha_channel, theta_channel): # calculate cognitive load index
 
         segment_powers = np.array(segment_powers)
         theta = segment_powers[theta_channel, 0]  # mat -> second values rows, third values columns
@@ -119,7 +120,7 @@ class Lsl_receiver:
     def send_hint(self, cli_list):
         # send hint, if mean of last cli values is under threshold
 
-        threshold = 4
+        threshold = 4 # hard coded threshold
         num_of_last_values = 10 # num of last cli values to calculate mean
         if (do_pretest): # if pretest flag is true, threshold is taken from pretest, otherwise is hard coded
             threshold = lsl.threshold
@@ -181,17 +182,19 @@ if __name__ == '__main__':
     alpha_channel = [11]#, 2]  # choose channel of interest for alpha_band
     theta_channel = [15]#, 3]  # choose channel of interest for theta_band
 
-    do_pretest = True  #
+    ###########################
+    # do pretest for calculating threshold #
+    ###########################
+    if lsl.do_pretest:  # check flag
 
-    #calculate threshold by pretest
 
-    requests.post("http://localhost:25080",
-                  json.dumps({'canvasText': "Please look at the fixation-cross for the next seconds"}))
-    time.sleep(3)
-    requests.post("http://localhost:25080",
-                  json.dumps({'showFixationPoint': True}))
+        requests.post("http://localhost:25080",
+                      json.dumps({'canvasText': "Please look at the fixation-cross for the next seconds"}))
+        time.sleep(3)
+        requests.post("http://localhost:25080",
+                      json.dumps({'showFixationPoint': True}))
 
-    if do_pretest: # check flag
+
 
         try:
             time.sleep(1)
@@ -244,7 +247,7 @@ if __name__ == '__main__':
             print("Done.")
 
 
-# skills lab is starting
+
 
     requests.post("http://localhost:25080",
                   json.dumps({'canvasText': "You can start with the skillslab task now!"}))
@@ -259,7 +262,9 @@ if __name__ == '__main__':
                   json.dumps({'finishedPreparation': True}))
 
 
-
+    ###########################################
+    # start of measurement during skills lab #
+    ###########################################
     try:
         time.sleep(1)
         data, _ = lsl.cut_segment(local_clock(), 1)
@@ -280,7 +285,7 @@ if __name__ == '__main__':
 
                 cli_list.append(cli)
 
-                lsl.send_hint(cli_list)
+                lsl.send_hint(cli_list) # check if hint should be displayed
 
                 #lsl.plot_cli(cli_list)
 
@@ -291,18 +296,9 @@ if __name__ == '__main__':
         except KeyboardInterrupt:
             pass
 
-
-
-
-        ###later: wait for trigger, than start lsl.cut_segment with argument which could be passed from unreal?
-        ### So, in main, while loop is waiting for input?
-
-
     except KeyboardInterrupt:
         lsl.stop_recording()
 
         print("Done.")
 
 
-# plug in dongle, turn on cyton, start "sudo python openbci_lsl.py /dev/ttyUSB0 --stream" in OpenBCI_LSL directory
-# then /start for streaming, /stop and /exit

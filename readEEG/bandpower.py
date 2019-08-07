@@ -15,6 +15,7 @@ class bandpower:
 
     def __init__(self, data_segment):
 
+        # define bands
         self.bands = OrderedDict([
             #('delta', [1, 3]),
             ('theta', [4, 7]),
@@ -25,9 +26,9 @@ class bandpower:
         self.n_bands = len(self.bands.keys())
         self.data_segment = data_segment
 
-        # get possible frequencies
+
         #data_segment = np.array(data_segment)[:, 0]
-        f, _ = periodogram(data_segment, 125)
+        f, _ = periodogram(data_segment, 125) ## get possible frequencies
 
 
         # lists for current cognitive load for every channel
